@@ -1,6 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+  
+env:
+  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  BBM_CAIYUN_API_KEY: ${{ secrets.BBM_CAIYUN_API_KEY }}
+  BBM_DEEPL_API_KEY: ${{ secrets.BBM_DEEPL_API_KEY }}
+
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: install python 3.9 
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip' # caching pip dependencies
+      - name: Check formatting (black)
+        run: |
+            pip install black
+            black . --check
+      - name: install python requirements
+        run: pip install -r requirements.txt
+
+      - name: Test install
+        run: |
+            pip install .
+
       - name: translate
         run: |
               python3 make_book.py --book_name "The.epub" --language zh-hans
+
       - name: Rename and Upload ePub
         if: env.OPENAI_API_KEY != null
         uses: actions/upload-artifact@v2
